@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Clínica Êxitos - Cuidando de você</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Ícones Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #e3f2fd, #e1f5fe);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1565c0;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #444;
+        }
+        .agendar-btn {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            padding: 15px 40px;
+        }
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: #0d47a1;
+            cursor: pointer;
+        }
+        footer {
+            margin-top: auto;
+            padding: 10px 0;
+            text-align: center;
+            background-color: #e3f2fd;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ícone de configurações -->
+    <i class="bi bi-list settings-icon" data-bs-toggle="offcanvas" data-bs-target="#menuOffcanvas" title="Menu"></i>
+
+    <!-- Menu Lateral -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="menuOffcanvas">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Acesso Interno</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="{% url 'cadastro_profissional' %}" class="text-decoration-none">Sou Profissional</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'cadastro_administrador' %}" class="text-decoration-none">Sou Administrador</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="container hero">
+        <h1>Bem-vindo à Clínica Êxitos</h1>
+        <p>Oferecemos cuidado humanizado e tecnologia para transformar sua experiência em saúde.</p>
+        <a href="{% url 'login_paciente' %}" class="btn btn-primary agendar-btn">
+            Agendar minha consulta
+
+        </a>
+    </div>
+
+    <footer>
+        © 2025 Clínica Êxitos — Todos os direitos reservados.
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
