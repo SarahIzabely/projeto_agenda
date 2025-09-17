@@ -19,16 +19,18 @@ class Profissional(models.Model):
     data_nascimento = models.DateField()
     especializacoes = models.CharField(max_length=200)
     crm = models.CharField(max_length=30, null=True)
-    status_aprovacao = models.BooleanField()  #verificar tipo
+    status_aprovacao = models.BooleanField() 
+    foto_profissional = models.ImageField(upload_to='pacientes/fotos/', blank=True, null=True)
+    #verificar tipo
 
     def __str__(self):
         return self.nome_profissional
 
 class Paciente(models.Model):
-    nome_paciente = models.CharField(max_length=200)
-    email_paciente = models.EmailField()
+    nome = models.CharField(max_length=200)
+    email = models.EmailField()
     whatsapp_paciente = models.CharField(max_length=30)
-    senha_paciente = models.CharField(max_length=30)
+    senha = models.CharField(max_length=30)
     cpf_paciente = models.CharField(max_length=30)
     data_nascimento = models.DateField()
     foto = models.ImageField(upload_to='pacientes/fotos/', blank=True, null=True)
@@ -56,39 +58,46 @@ class Horario_disponivel(models.Model):
     def __str__(self):
         return self.Data, self.hora_inicio
 
-class Comprovante_pagamento(models.Model):
-    tipo_agendamento = models.CharField(max_length=100) #alterar isso
-    agendamento_id = models.ForeignKey(Agendamento, on_delete=models.CASCADE)
+
+
+
+class Professional(models.Model):
+    nome = models.CharField(max_length=255)
+    especialidade = models.CharField(max_length=255)
+    foto = models.ImageField(upload_to='profissionais/fotos/', blank=True, null=True)
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['nome']
 
     def __str__(self):
-        return self.tipo_agendamento
+        return f"{self.nome} - {self.especialidade}"
 
-class Consulta(models.Model):
-    agendamento_id = models.ForeignKey(Agendamento, on_delete=models.CASCADE)
-    diagnostico = models.CharField(max_length=100)
-    prescricao = models.CharField(max_length=100)
-    observacoes_consulta = models.CharField(max_length=100)
+class Availability(models.Model):
+    profissional = models.ForeignKey(Professional, on_delete=models.CASCADE, related_name='availabilities')
+    data = models.DateField()
+    hora = models.TimeField()
+    disponivel = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.observacoes_consulta
-
-class Receita_medica(models.Model):
-    consulta_id = models.ForeignKey(Consulta, on_delete=models.CASCADE)
-    diagnostico = models.CharField(max_length=100) #mudar, tem q herdar
-    prescricao = models.CharField(max_length=100) #mudar, tem q herdar
+    class Meta:
+        ordering = ['data', 'hora']
+        unique_together = ('profissional', 'data', 'hora')  # evita duplicados
 
     def __str__(self):
-        return self.diagnostico, self.prescricao
+        return f"{self.profissional.nome} — {self.data} {self.hora}"
 
-class Mensagem_WPP(models.Model):
-    paciente_id = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    tipo_mensagem = models.CharField(max_length=100) #alterar, selecionar caixinha
-    texto = models.CharField(max_length=100)
-    data_envio = models.DateTimeField()
+class Appointment(models.Model):
+    paciente = models.ForeignKey('agenda.Paciente', on_delete=models.CASCADE, related_name='appointments')
+    disponibilidade = models.ForeignKey(Availability, on_delete=models.PROTECT)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    STATUS_CHOICES = [
+        ('confirmada','Confirmada'),
+        ('cancelada','Cancelada'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='confirmada')
 
     def __str__(self):
-        return self.tipo_mensagem
-
-
+        return f"{self.paciente.nome} — {self.disponibilidade}"
 
 # Create your models here.

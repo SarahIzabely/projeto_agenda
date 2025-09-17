@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - Clínica Êxitos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(to right, #e3f2fd, #e1f5fe); min-height:100vh; }
+    .sidebar { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.05); }
+    .profile-small { width:48px; height:48px; object-fit:cover; border-radius:50%; cursor:pointer; }
+    .nav-link.active { font-weight:700; color:#0d47a1; }
+    .card-slot img { width:56px; height:56px; object-fit:cover; border-radius:8px; }
+    .btn-primary { background-color: #1565c0; border: none; }
+    .btn-primary:hover { background-color:#0d47a1; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid py-4">
+    <div class="row gx-4">
+      <!-- SIDEBAR -->
+      <div class="col-md-3">
+        <div class="sidebar">
+          <!-- foto pequena e clique para informações -->
+          <div class="d-flex align-items-center mb-3">
+            {% if paciente.foto %}
+              <img src="{{ paciente.foto.url }}" alt="foto" class="profile-small me-2" data-bs-toggle="collapse" data-bs-target="#perfilInfo" aria-expanded="false" style="cursor:pointer;">
+            {% else %}
+              <img src="{% static 'placeholder_user.png' %}" alt="foto" class="profile-small me-2" data-bs-toggle="collapse" data-bs-target="#perfilInfo" aria-expanded="false" style="cursor:pointer;">
+            {% endif %}
+            <div>
+              <div style="font-weight:600">{{ paciente.nome }}</div>
+              <small class="text-muted">Paciente</small>
+            </div>
+          </div>
+
+          <!-- painel colapsável com informações -->
+          <div class="collapse mb-3" id="perfilInfo">
+            <div class="card card-body">
+              <p><strong>Nome:</strong> {{ paciente.nome }}</p>
+              <p><strong>CPF:</strong> {{ paciente.cpf }}</p>
+              <p><strong>WhatsApp:</strong> {{ paciente.whatsapp }}</p>
+              <p><strong>E-mail:</strong> {{ paciente.email }}</p>
+            </div>
+          </div>
+
+          <!-- Menu -->
+          <nav class="nav flex-column">
+            <a class="nav-link active" href="{% url 'dashboard' %}">Agendamentos</a>
+            <a class="nav-link" href="{% url 'profissionais' %}">Profissionais</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="col-md-9">
+        <div class="mb-3">
+          <h3>Agendamentos disponíveis</h3>
+          <p class="text-muted">Selecione um horário para marcar sua consulta.</p>
+        </div>
+
+        <div class="row g-3">
+          {% if availabilities %}
+            {% for a in availabilities %}
+            <div class="col-md-6 col-lg-4">
+              <div class="card p-3 h-100 card-slot">
+                <div class="d-flex align-items-center">
+                  {% if a.profissional.foto %}
+                    <img src="{{ a.profissional.foto.url }}" alt="foto" class="me-3">
+                  {% else %}
+                    <img src="{% static 'placeholder_user.png' %}" alt="foto" class="me-3">
+                  {% endif %}
+                  <div>
+                    <div style="font-weight:600">{{ a.profissional.nome }} <small class="text-muted">- {{ a.profissional.especialidade }}</small></div>
+                    <div class="text-muted">{{ a.data }} • {{ a.hora }}</div>
+                  </div>
+                </div>
+
+                <div class="mt-3 text-end">
+                  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmModal"
+                          data-availability-id="{{ a.id }}"
+                          data-prof-name="{{ a.profissional.nome }}"
+                          data-date="{{ a.data }}"
+                          data-time="{{ a.hora }}">
+                    Agendar
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="col-12">
+              <div class="alert alert-info">No momento não há horários disponíveis. Verifique novamente mais tarde.</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form method="post" action="{% url 'book_appointment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="availability_id" id="modalAvailabilityId">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirmar agendamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p id="modalMessage">Deseja agendar?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Confirmar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- scripts bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Preencher modal quando abrir
+    var confirmModal = document.getElementById('confirmModal');
+    confirmModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var availabilityId = button.getAttribute('data-availability-id');
+      var profName = button.getAttribute('data-prof-name');
+      var date = button.getAttribute('data-date');
+      var time = button.getAttribute('data-time');
+
+      document.getElementById('modalAvailabilityId').value = availabilityId;
+      document.getElementById('modalMessage').innerText = `Agendar consulta com ${profName} em ${date} às ${time}?`;
+    });
+  </script>
+</body>
+</html>

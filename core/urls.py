@@ -1,36 +1,28 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
-from agenda.views import *
+from agenda.views import cadastro_paciente, login_paciente, dashboard, profissionais_view, book_appointment
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('', home, name='home'),
-    #path('', include('agenda.urls')),  # sua app
-    path('cadastro/paciente/', cadastro_paciente, name='cadastro_paciente'),
-    path('cadastro/profissional/', cadastro_profissional, name='cadastro_profissional'),
-    path('cadastro/administrador/', cadastro_administrador, name='cadastro_administrador'),
+
+    # Tela inicial de login (raiz)
     path('', login_paciente, name='login_paciente'),
-    path('paciente/cadastro/', cadastro_paciente, name='cadastro_paciente'),  # ainda vamos criar
-    #path('paciente/agendamento/', agendamento_paciente, name='agendamento_paciente')  # ainda vamos criar
+
+    # Cadastro de paciente
+    path('paciente/cadastro/', cadastro_paciente, name='cadastro_paciente'),
+
+    # Dashboard do paciente (após login/cadastro)
+    path('paciente/dashboard/', dashboard, name='dashboard'),
+
+    # Listagem de profissionais
+    path('paciente/profissionais/', profissionais_view, name='profissionais'),
+
+    # Agendamentos
+    path('paciente/agendamento/book/', book_appointment, name='book_appointment'),
 ]
 
+# Para servir imagens durante o desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
