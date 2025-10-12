@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mt-3">Horários Disponíveis</h2>
+
+{% if user.is_authenticated and user.is_professional %}
+    <a href="{% url 'criar_horario' %}" class="btn btn-primary mb-3">Criar Novo Horário</a>
+{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Profissional</th>
+            <th>Data</th>
+            <th>Início</th>
+            <th>Término</th>
+            {% if user.is_authenticated and user.is_professional %}
+                <th>Ações</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for horario in horarios %}
+        <tr>
+            <td>{{ horario.profissional.get_full_name }}</td>
+            <td>{{ horario.data }}</td>
+            <td>{{ horario.hora_inicio }}</td>
+            <td>{{ horario.hora_fim }}</td>
+            {% if user.is_authenticated and user.is_professional and horario.profissional == user %}
+                <td>
+                    <a href="{% url 'editar_horario' horario.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'deletar_horario' horario.pk %}" class="btn btn-sm btn-danger">Deletar</a>
+                </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Nenhum horário disponível no momento.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

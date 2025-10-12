@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Horários - Clínica Êxitos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Meus Horários de Atendimento</h2>
+
+    <a href="{% url 'criar_horario' %}" class="btn btn-primary mb-3">
+        <i class="bi bi-plus-circle"></i> Novo Horário
+    </a>
+
+    {% if horarios %}
+        <div class="row g-3">
+            {% for horario in horarios %}
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ horario.data }} ({{ horario.hora_inicio }} às {{ horario.hora_fim }})</h5>
+                        <p>Status: 
+                            {% if horario.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'editar_horario' horario.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                            <a href="{% url 'deletar_horario' horario.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Nenhum horário cadastrado.</div>
+    {% endif %}
+</div>
+{% endblock %}

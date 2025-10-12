@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Nossos Profissionais - Clínica Êxitos{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-people-fill text-primary"></i> Nossos Profissionais</h2>
+
+<div class="row g-4">
+    {% for prof in profissionais %}
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                {% if prof.foto_perfil %}
+                    <img src="{{ prof.foto_perfil.url }}" class="rounded-circle mb-3 mx-auto d-block" style="width:120px;height:120px;object-fit:cover;">
+                {% else %}
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width:120px;height:120px;">
+                        <i class="bi bi-person-circle text-muted" style="font-size:4rem;"></i>
+                    </div>
+                {% endif %}
+                <h5>{{ prof.first_name }} {{ prof.last_name }}</h5>
+                <p class="text-muted mb-1">
+                    {% if prof.especializacao %}{{ prof.especializacao }}{% else %}Especialização não informada{% endif %}
+                </p>
+                <p class="text-muted mb-3">
+                    {% if prof.crm %}CRM: {{ prof.crm }}{% else %}CRM não informado{% endif %}
+                </p>
+                <a href="{% url 'detalhe_profissional' prof.pk %}" class="btn btn-primary btn-sm">Ver mais</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">Nenhum profissional cadastrado no momento.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

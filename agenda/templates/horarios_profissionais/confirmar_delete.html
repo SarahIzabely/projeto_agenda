@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mt-3">Deletar Horário</h2>
+<p>Tem certeza que deseja deletar o horário de {{ horario.profissional.get_full_name }} em {{ horario.data }} {{ horario.hora_inicio }} - {{ horario.hora_fim }}?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, deletar</button>
+    <a href="{% url 'listar_horarios' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

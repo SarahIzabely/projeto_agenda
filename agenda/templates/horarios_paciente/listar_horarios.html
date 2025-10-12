@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Horários Disponíveis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="bi bi-calendar2-check text-success"></i> Horários Disponíveis
+                </h2>
+                {% if user.is_profissional %}
+                <a href="{% url 'criar_horario' %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Novo Horário
+                </a>
+                {% endif %}
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    {% if horarios %}
+        <div class="row g-4">
+            {% for horario in horarios %}
+                <div class="col-md-4">
+                    <div class="card horario-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-clock"></i> Horário #{{ horario.id }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="bi bi-calendar3"></i> {{ horario.data|date:"d/m/Y" }} 
+                                | {{ horario.hora_inicio }} - {{ horario.hora_fim }}
+                            </h6>
+
+                            <p class="card-text">
+                                Profissional: {{ horario.profissional.get_full_name }}
+                            </p>
+
+                            {% if user == horario.profissional %}
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'editar_horario' horario.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <a href="{% url 'deletar_horario' horario.pk %}" class="btn btn-sm btn-outline-danger flex-fill">
+                                    <i class="bi bi-trash"></i> Excluir
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+
+                    {% if user.is_authenticated %}
+                        <h4 class="mt-3">Nenhum horário disponível</h4>
+                        <p>Profissionais podem cadastrar horários disponíveis.</p>
+                        {% if user.is_profissional %}
+                        <a href="{% url 'criar_horario' %}" class="btn btn-success mt-2">
+                            <i class="bi bi-plus-circle"></i> Cadastrar Horário
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <h4 class="mt-3">Cadastre-se ou faça login para ver horários disponíveis</h4>
+                        <div class="d-flex justify-content-center gap-3 mt-3">
+                            <a href="{% url 'login' %}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                            </a>
+                            <a href="{% url 'cadastrar_usuario' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-person-plus"></i> Cadastrar-se
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% block extra_css %}
+<style>
+    .horario-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+
+    .horario-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .horario-card .card-header {
+        background-color: #E8F5E9;
+        border-bottom: 2px solid #4CAF50;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+{% endblock %}

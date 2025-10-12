@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Horário - Clínica Êxitos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2>Confirmar Exclusão</h2>
+    <p>Tem certeza que deseja excluir o horário em {{ horario.data }} ({{ horario.hora_inicio }} às {{ horario.hora_fim }})?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <a href="{% url 'listar_horarios' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">Excluir</button>
+    </form>
+</div>
+{% endblock %}

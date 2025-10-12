@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'agenda',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,15 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# informando para o django o usuario utilizado.
+AUTH_USER_MODEL = 'usuarios.UsuarioAdaptado'
+
+# URLs de redirecionamento após login/logout
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'listar_vagas'
+LOGOUT_REDIRECT_URL = 'login'   
 
 TEMPLATES = [
     {

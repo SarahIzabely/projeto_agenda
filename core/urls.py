@@ -1,28 +1,22 @@
 from django.contrib import admin
 from django.urls import path
-from agenda.views import cadastro_paciente, login_paciente, dashboard, profissionais_view, book_appointment
-from django.conf import settings
 from django.conf.urls.static import static
+from django.conf import settings
+from agenda import views as agenda_views
+from django.urls import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # Tela inicial de login (raiz)
-    path('', login_paciente, name='login_paciente'),
-
-    # Cadastro de paciente
-    path('paciente/cadastro/', cadastro_paciente, name='cadastro_paciente'),
-
-    # Dashboard do paciente (após login/cadastro)
-    path('paciente/dashboard/', dashboard, name='dashboard'),
-
-    # Listagem de profissionais
-    path('paciente/profissionais/', profissionais_view, name='profissionais'),
-
-    # Agendamentos
-    path('paciente/agendamento/book/', book_appointment, name='book_appointment'),
+    path('', agenda_views.home, name='home'),
+    # Horários agenda
+    path('', agenda_views.listar_horarios, name='listar_horarios'),
+    path('horarios/criar/', agenda_views.criar_horario, name='criar_horario'),
+    path('horarios/editar/<int:pk>/', agenda_views.editar_horario, name='editar_horario'),
+    path('horarios/deletar/<int:pk>/', agenda_views.deletar_horario, name='deletar_horario'),
+    
+    # Usuários
+    path('usuarios/', include('usuarios.urls')),
 ]
 
-# Para servir imagens durante o desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
