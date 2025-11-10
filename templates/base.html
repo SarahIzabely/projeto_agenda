@@ -247,11 +247,17 @@
                 </a>
             {% endif %}
 
-            <a class="nav-link" href="#"><i class="bi bi-search"></i> Buscar Horários</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'listar_profissionais' %}active{% endif %}" href="{% url 'listar_profissionais' %}">
                 <i class="bi bi-people-fill"></i> Nossos Profissionais
             </a>
 
+            <!-- Substituído: 'Buscar Horários' -> 'Horários Agendados' -->
+            <a class="nav-link {% if request.resolver_match.url_name == 'horarios_agendados' %}active{% endif %}" href="{% url 'horarios_agendados' %}">
+                <i class="bi bi-calendar-check-fill"></i> Horários Agendados
+            </a>
+            
+            <a class="nav-link" href="#"><i class="bi bi-archive"></i> Horários Arquivados</a>
+            
             {% if user.is_superuser %}
                 <a class="nav-link" href="#"><i class="bi bi-bar-chart"></i> Relatórios</a>
                 <hr class="text-light mx-3">

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import HorarioDisponivel, UsuarioAdaptado
+from .models import HorarioDisponivel, UsuarioAdaptado, Agendamento
 from .forms import UsuarioAdaptadoCreationForm, LoginForm, PerfilForm, HorarioDisponivelForm
 from django.contrib.auth.models import Group
 
@@ -171,3 +171,59 @@ def detalhe_profissional(request, pk):
         'profissional': profissional
     }
     return render(request, 'profissionais/detalhe.html', context)
+
+@login_required
+def detalhes_consulta(request, pk):
+    horario = get_object_or_404(HorarioDisponivel, pk=pk)
+    return render(request, 'horarios_paciente/detalhes_consulta.html', {'horario': horario})
+
+
+@login_required
+def confirmar_agendamento(request, pk):
+    horario = get_object_or_404(HorarioDisponivel, pk=pk)
+
+    # Evita que profissionais agendem seus próprios horários
+    if request.user == horario.profissional:
+        messages.error(request, "Você não pode agendar consigo mesmo.")
+        return redirect('listar_horarios')
+
+    # Cria o agendamento
+    Agendamento.objects.create(
+        paciente=request.user,
+        profissional=horario.profissional,
+        data=horario.data,
+        hora_inicio=horario.hora_inicio,
+        hora_fim=horario.hora_fim
+    )
+
+    # Desativa o horário (para não ficar disponível)
+    horario.ativo = False
+    horario.save()
+
+    messages.success(request, "Agendamento confirmado com sucesso!")
+    return redirect('listar_horarios')
+
+@login_required
+def horarios_agendados(request):
+    user = request.user
+    context = {}
+
+    # Se o usuário for profissional, mostra os horários marcados com ele
+    if user.groups.filter(name='profissionais').exists():
+        consultas = Agendamento.objects.filter(profissional=user).order_by('-data', '-horario')
+        context['titulo'] = "Horários Agendados com Você"
+        context['consultas'] = consultas
+        return render(request, 'horarios_paciente/horarios_agendados.html', context)
+
+    # Se for paciente comum
+    elif user.groups.filter(name='usuarios_comum').exists():
+        consultas = Agendamento.objects.filter(paciente=user).order_by('-data', '-horario')
+        context['titulo'] = "Seus Horários Agendados"
+        context['consultas'] = consultas
+        return render(request, 'horarios_paciente/horarios_agendados.html', context)
+
+    # Caso não pertença a nenhum grupo (ou admin)
+    else:
+        context['consultas'] = []
+        context['titulo'] = "Horários Agendados"
+        return render(request, 'horarios_paciente/horarios_agendados.html', context)

@@ -98,7 +98,6 @@ DATABASES = {
 POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
 
 POSTGRES_PORT = os.environ.get('POSTGRES_PORT', 5432)
-d
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

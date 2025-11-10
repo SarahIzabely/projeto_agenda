@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.conf import settings
 
 class UsuarioAdaptado(AbstractUser):
     cpf = models.CharField(max_length=11, unique=True, verbose_name="CPF")
@@ -47,3 +48,27 @@ class HorarioDisponivel(models.Model):
 
     def __str__(self):
         return f"{self.profissional.username} - {self.data} {self.hora_inicio} às {self.hora_fim}"
+
+class Agendamento(models.Model):
+    paciente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='agendamentos_paciente'
+    )
+    profissional = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='agendamentos_profissional'
+    )
+    data = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fim = models.TimeField()
+    criado_em = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Agendamento"
+        verbose_name_plural = "Agendamentos"
+        ordering = ['data', 'hora_inicio']
+
+    def __str__(self):
+        return f"{self.paciente.username} com {self.profissional.username} em {self.data}"
