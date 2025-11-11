@@ -256,7 +256,9 @@
                 <i class="bi bi-calendar-check-fill"></i> Horários Agendados
             </a>
             
-            <a class="nav-link" href="#"><i class="bi bi-archive"></i> Horários Arquivados</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'horarios_arquivados' %}active{% endif %}" href="{% url 'horarios_arquivados' %}">
+                <i class="bi bi-archive"></i> Horários Arquivados
+            </a>
             
             {% if user.is_superuser %}
                 <a class="nav-link" href="#"><i class="bi bi-bar-chart"></i> Relatórios</a>

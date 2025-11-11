@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-primary mb-4">{{ titulo }}</h2>
+    <h2 class="text-primary mb-4">Consultas Arquivadas</h2>
 
     {% if consultas %}
         <div class="card shadow-sm rounded-4 p-3 bg-white border-0">
@@ -28,25 +28,13 @@
                             <td>{{ horario.data|date:"d/m/Y" }}</td>
                             <td>{{ horario.hora_inicio|time:"H:i" }} - {{ horario.hora_fim|time:"H:i" }}</td>
                             <td>
-                                {% if horario.concluida %}
-                                    <span class="badge bg-success">Concluída</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Pendente</span>
-                                {% endif %}
+                                <span class="badge bg-success">Concluída</span>
                             </td>
                             <td>
-                                {% if not horario.concluida %}
-                                    <form method="post" action="{% url 'concluir_consulta' horario.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-success btn-sm">
-                                            <i class="bi bi-check-circle"></i> Concluir
-                                        </button>
-                                    </form>
-                                {% endif %}
-                                <form method="post" action="{% url 'cancelar_agendamento' horario.id %}" style="display:inline;">
+                                <form method="post" action="{% url 'desmarcar_conclusao' horario.id %}" style="display:inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Desmarcar
                                     </button>
                                 </form>
                             </td>
@@ -56,7 +44,13 @@
             </table>
         </div>
     {% else %}
-        <div class="alert alert-info text-center">Nenhuma consulta agendada no momento.</div>
+        <div class="alert alert-info text-center">Nenhuma consulta arquivada até o momento.</div>
     {% endif %}
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'horarios_agendados' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
 </div>
 {% endblock %}

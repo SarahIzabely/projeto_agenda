@@ -48,7 +48,7 @@ class HorarioDisponivel(models.Model):
 
     def __str__(self):
         return f"{self.profissional.username} - {self.data} {self.hora_inicio} às {self.hora_fim}"
-
+    
 class Agendamento(models.Model):
     paciente = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -64,6 +64,7 @@ class Agendamento(models.Model):
     hora_inicio = models.TimeField()
     hora_fim = models.TimeField()
     criado_em = models.DateTimeField(default=timezone.now)
+    concluida = models.BooleanField(default=False, verbose_name="Consulta Concluída")  # 🔵 novo campo
 
     class Meta:
         verbose_name = "Agendamento"

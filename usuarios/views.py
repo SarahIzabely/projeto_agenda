@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from .models import HorarioDisponivel, UsuarioAdaptado, Agendamento
 from .forms import UsuarioAdaptadoCreationForm, LoginForm, PerfilForm, HorarioDisponivelForm
 from django.contrib.auth.models import Group
@@ -12,54 +13,39 @@ def cadastrar_usuario(request):
         form = UsuarioAdaptadoCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            
-            grupo_simples, created = Group.objects.get_or_create(name='USUARIO_SIMPLES')
+            grupo_simples, _ = Group.objects.get_or_create(name='USUARIO_SIMPLES')
             user.groups.add(grupo_simples)
-            
+
             login(request, user)
             messages.success(request, f'Cadastro realizado com sucesso! Bem-vindo, {user.username}.')
-            
-            # Redireciona dependendo do tipo de usuário
-            if hasattr(user, 'is_professional') and user.is_professional:
-                return redirect('listar_horarios')
-            else:
-                return redirect('listar_horarios')  # paciente vai para a listagem de horários
+            return redirect('listar_horarios')
         else:
             messages.error(request, 'Por favor, corrija os erros abaixo.')
     else:
         form = UsuarioAdaptadoCreationForm()
-    
+
     return render(request, 'usuarios/cadastrar.html', {'form': form})
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        if hasattr(request.user, 'is_professional') and request.user.is_professional:
-            return redirect('listar_horarios')
-        else:
-            return redirect('listar_horarios')  # paciente vai para a listagem de horários
-    
+        return redirect('listar_horarios')
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
-            
-            if user is not None:
+            if user:
                 login(request, user)
                 messages.success(request, f'Bem-vindo, {user.username}!')
-                
-                if hasattr(user, 'is_professional') and user.is_professional:
-                    next_page = request.GET.get('next', 'listar_horarios')
-                else:
-                    next_page = request.GET.get('next', 'listar_horarios')
-                return redirect(next_page)
-        else:
-            messages.error(request, 'Usuário ou senha inválidos.')
+                return redirect('listar_horarios')
+            else:
+                messages.error(request, 'Usuário ou senha inválidos.')
     else:
         form = LoginForm()
-    
+
     return render(request, 'usuarios/login.html', {'form': form})
 
 
@@ -79,18 +65,18 @@ def perfil_view(request):
             return redirect('perfil')
     else:
         form = PerfilForm(instance=request.user)
-    
+
     return render(request, 'usuarios/perfil.html', {'form': form})
 
 
 @login_required
 def listar_horarios(request):
     if not request.user.is_professional:
-        # Paciente pode ver todos os horários disponíveis
-        horarios = HorarioDisponivel.objects.all().order_by('data', 'hora_inicio')
+        # Paciente vê apenas horários disponíveis
+        horarios = HorarioDisponivel.objects.filter(ativo=True).order_by('data', 'hora_inicio')
         return render(request, 'horarios_paciente/listar_horarios.html', {'horarios': horarios})
-    
-    # Profissional vê apenas os seus
+
+    # Profissional vê apenas seus próprios horários
     horarios = HorarioDisponivel.objects.filter(profissional=request.user)
     return render(request, 'usuarios/horarios_list.html', {'horarios': horarios})
 
@@ -151,26 +137,17 @@ def deletar_horario(request, pk):
     return render(request, 'usuarios/horarios_confirm_delete.html', {'horario': horario})
 
 
-# =========================
-# Novas views para profissionais
-# =========================
-
 @login_required
 def listar_profissionais(request):
     profissionais = UsuarioAdaptado.objects.filter(is_professional=True)
-    context = {
-        'profissionais': profissionais
-    }
-    return render(request, 'profissionais/lista.html', context)
+    return render(request, 'profissionais/lista.html', {'profissionais': profissionais})
 
 
 @login_required
 def detalhe_profissional(request, pk):
     profissional = get_object_or_404(UsuarioAdaptado, pk=pk, is_professional=True)
-    context = {
-        'profissional': profissional
-    }
-    return render(request, 'profissionais/detalhe.html', context)
+    return render(request, 'profissionais/detalhe.html', {'profissional': profissional})
+
 
 @login_required
 def detalhes_consulta(request, pk):
@@ -180,11 +157,22 @@ def detalhes_consulta(request, pk):
 
 @login_required
 def confirmar_agendamento(request, pk):
-    horario = get_object_or_404(HorarioDisponivel, pk=pk)
+    """Confirma um agendamento e associa paciente e profissional."""
+    horario = get_object_or_404(HorarioDisponivel, pk=pk, ativo=True)
 
-    # Evita que profissionais agendem seus próprios horários
+    # Impede o profissional de agendar consigo mesmo
     if request.user == horario.profissional:
-        messages.error(request, "Você não pode agendar consigo mesmo.")
+        messages.error(request, "Você não pode agendar um horário consigo mesmo.")
+        return redirect('listar_horarios')
+
+    # Impede o usuário de agendar um horário já agendado
+    if Agendamento.objects.filter(
+        profissional=horario.profissional,
+        data=horario.data,
+        hora_inicio=horario.hora_inicio,
+        hora_fim=horario.hora_fim
+    ).exists():
+        messages.warning(request, "Este horário já foi agendado por outra pessoa.")
         return redirect('listar_horarios')
 
     # Cria o agendamento
@@ -193,37 +181,90 @@ def confirmar_agendamento(request, pk):
         profissional=horario.profissional,
         data=horario.data,
         hora_inicio=horario.hora_inicio,
-        hora_fim=horario.hora_fim
+        hora_fim=horario.hora_fim,
+        criado_em=timezone.now()
     )
 
-    # Desativa o horário (para não ficar disponível)
+    # Marca o horário como indisponível
     horario.ativo = False
     horario.save()
 
     messages.success(request, "Agendamento confirmado com sucesso!")
-    return redirect('listar_horarios')
+    return redirect('horarios_agendados')
+
+@login_required
+def cancelar_agendamento(request, pk):
+    """Permite que o paciente cancele um agendamento."""
+    agendamento = get_object_or_404(Agendamento, pk=pk, paciente=request.user)
+
+    # Reativa o horário correspondente
+    horario = HorarioDisponivel.objects.filter(
+        profissional=agendamento.profissional,
+        data=agendamento.data,
+        hora_inicio=agendamento.hora_inicio,
+        hora_fim=agendamento.hora_fim
+    ).first()
+
+    if horario:
+        horario.ativo = True
+        horario.save()
+
+    agendamento.delete()
+    messages.success(request, "Agendamento cancelado com sucesso!")
+    return redirect('horarios_agendados')
 
 @login_required
 def horarios_agendados(request):
-    user = request.user
-    context = {}
-
-    # Se o usuário for profissional, mostra os horários marcados com ele
-    if user.groups.filter(name='profissionais').exists():
-        consultas = Agendamento.objects.filter(profissional=user).order_by('-data', '-horario')
-        context['titulo'] = "Horários Agendados com Você"
-        context['consultas'] = consultas
-        return render(request, 'horarios_paciente/horarios_agendados.html', context)
-
-    # Se for paciente comum
-    elif user.groups.filter(name='usuarios_comum').exists():
-        consultas = Agendamento.objects.filter(paciente=user).order_by('-data', '-horario')
-        context['titulo'] = "Seus Horários Agendados"
-        context['consultas'] = consultas
-        return render(request, 'horarios_paciente/horarios_agendados.html', context)
-
-    # Caso não pertença a nenhum grupo (ou admin)
+    """Lista todos os horários agendados pelo usuário logado (somente os não concluídos)."""
+    if request.user.is_professional:
+        # Profissional vê apenas consultas ainda não concluídas
+        consultas = Agendamento.objects.filter(
+            profissional=request.user,
+            concluida=False
+        ).order_by('data', 'hora_inicio')
+        titulo = "Meus Agendamentos com Pacientes"
     else:
-        context['consultas'] = []
-        context['titulo'] = "Horários Agendados"
-        return render(request, 'horarios_paciente/horarios_agendados.html', context)
+        # Paciente vê apenas suas consultas ainda não concluídas
+        consultas = Agendamento.objects.filter(
+            paciente=request.user,
+            concluida=False
+        ).order_by('data', 'hora_inicio')
+        titulo = "Meus Horários Agendados"
+
+    return render(
+        request,
+        'horarios_paciente/horarios_agendados.html',
+        {'consultas': consultas, 'titulo': titulo}
+    )
+
+@login_required
+def horarios_arquivados(request):
+    consultas_concluidas = Agendamento.objects.filter(
+        paciente=request.user, concluida=True
+    ).order_by('-data', '-hora_inicio')
+
+    return render(request, 'horarios_paciente/horarios_arquivados.html', {
+        'consultas': consultas_concluidas
+    })
+
+
+@login_required
+def concluir_consulta(request, pk):
+    agendamento = get_object_or_404(Agendamento, pk=pk, paciente=request.user)
+
+    agendamento.concluida = True
+    agendamento.save()
+
+    messages.success(request, "Consulta marcada como concluída com sucesso!")
+    return redirect('horarios_agendados')
+
+@login_required
+def desmarcar_conclusao(request, pk):
+    """Desmarca uma consulta como concluída e a retorna aos horários agendados."""
+    agendamento = get_object_or_404(Agendamento, pk=pk, paciente=request.user)
+
+    agendamento.concluida = False
+    agendamento.save()
+
+    messages.success(request, "Consulta marcada novamente como pendente.")
+    return redirect('horarios_arquivados')
