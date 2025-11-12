@@ -73,3 +73,14 @@ class Agendamento(models.Model):
 
     def __str__(self):
         return f"{self.paciente.username} com {self.profissional.username} em {self.data}"
+
+class AvisoCancelamento(models.Model):
+    paciente = models.ForeignKey(UsuarioAdaptado, on_delete=models.CASCADE)
+    profissional = models.ForeignKey(UsuarioAdaptado, on_delete=models.CASCADE, related_name='avisos_cancelamento')
+    data = models.DateField()
+    hora_inicio = models.TimeField()
+    mensagem = models.CharField(max_length=255)
+    lido = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Aviso para {self.paciente} - {self.data} {self.hora_inicio}"

@@ -24,6 +24,9 @@ urlpatterns = [
     path('horarios/arquivados/', views.horarios_arquivados, name='horarios_arquivados'),
     path('horarios/concluir/<int:pk>/', views.concluir_consulta, name='concluir_consulta'),
     path('desmarcar_conclusao/<int:pk>/', views.desmarcar_conclusao, name='desmarcar_conclusao'),
+    path('avisos/', views.avisos_cancelamento, name='avisos_cancelamento'),
+    path('avisos/<int:pk>/lido/', views.marcar_aviso_lido, name='marcar_aviso_lido'),
+
 
 
 ]

@@ -1,28 +1,40 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-primary mb-4">Consultas Arquivadas</h2>
+    <h2 class="text-primary mb-4">
+        {% if user.is_professional %}
+            Consultas Concluídas com Pacientes
+        {% else %}
+            Consultas Concluídas com Profissionais
+        {% endif %}
+    </h2>
 
     {% if consultas %}
         <div class="card shadow-sm rounded-4 p-3 bg-white border-0">
             <table class="table table-hover align-middle">
                 <thead class="table-primary">
                     <tr>
-                        <th>Profissional</th>
+                        <th>{% if user.is_professional %}Paciente{% else %}Profissional{% endif %}</th>
                         <th>Data</th>
                         <th>Horário</th>
                         <th>Status</th>
-                        <th>Ações</th>
+                        {% if user.is_professional %}
+                            <th class="text-center">Opções</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for horario in consultas %}
                         <tr>
                             <td>
-                                {{ horario.profissional.get_full_name }}
-                                {% if horario.profissional.especializacao %}
-                                    <br>
-                                    <small class="text-muted">{{ horario.profissional.especializacao }}</small>
+                                {% if user.is_professional %}
+                                    {{ horario.paciente.get_full_name }}
+                                {% else %}
+                                    {{ horario.profissional.get_full_name }}
+                                    {% if horario.profissional.especializacao %}
+                                        <br>
+                                        <small class="text-muted">{{ horario.profissional.especializacao }}</small>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>{{ horario.data|date:"d/m/Y" }}</td>
@@ -30,14 +42,16 @@
                             <td>
                                 <span class="badge bg-success">Concluída</span>
                             </td>
-                            <td>
-                                <form method="post" action="{% url 'desmarcar_conclusao' horario.id %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Desmarcar
-                                    </button>
-                                </form>
-                            </td>
+                            {% if user.is_professional %}
+                                <td class="text-center">
+                                    <form method="post" action="{% url 'desmarcar_conclusao' horario.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Desmarcar
+                                        </button>
+                                    </form>
+                                </td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -48,7 +62,7 @@
     {% endif %}
 
     <div class="mt-4 text-center">
-        <a href="{% url 'horarios_agendados' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'horarios_agendados' %}" class="btn btn-outline-secondary rounded-pill px-4">
             <i class="bi bi-arrow-left"></i> Voltar
         </a>
     </div>

@@ -8,7 +8,7 @@
             <table class="table table-hover align-middle">
                 <thead class="table-primary">
                     <tr>
-                        <th>Profissional</th>
+                        <th>{% if user.is_professional %}Paciente{% else %}Profissional{% endif %}</th>
                         <th>Data</th>
                         <th>Horário</th>
                         <th>Status</th>
@@ -19,10 +19,14 @@
                     {% for horario in consultas %}
                         <tr>
                             <td>
-                                {{ horario.profissional.get_full_name }}
-                                {% if horario.profissional.especializacao %}
-                                    <br>
-                                    <small class="text-muted">{{ horario.profissional.especializacao }}</small>
+                                {% if user.is_professional %}
+                                    {{ horario.paciente.get_full_name }}
+                                {% else %}
+                                    {{ horario.profissional.get_full_name }}
+                                    {% if horario.profissional.especializacao %}
+                                        <br>
+                                        <small class="text-muted">{{ horario.profissional.especializacao }}</small>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>{{ horario.data|date:"d/m/Y" }}</td>
@@ -35,7 +39,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if not horario.concluida %}
+                                {% if user.is_professional and not horario.concluida %}
                                     <form method="post" action="{% url 'concluir_consulta' horario.id %}" style="display:inline;">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-outline-success btn-sm">
@@ -59,4 +63,18 @@
         <div class="alert alert-info text-center">Nenhuma consulta agendada no momento.</div>
     {% endif %}
 </div>
+
+<!-- POPUP de aviso de cancelamento -->
+{% if aviso %}
+<div id="popup-aviso" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50" style="z-index: 1050;">
+    <div class="card shadow-lg p-4 text-center" style="max-width: 400px;">
+        <h5 class="text-danger mb-3">Aviso de Cancelamento</h5>
+        <p class="mb-4">{{ aviso.mensagem }}</p>
+        <form method="post" action="{% url 'marcar_aviso_lido' aviso.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary px-4">OK</button>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

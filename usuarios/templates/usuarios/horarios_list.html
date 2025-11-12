@@ -4,29 +4,52 @@
 
 {% block content %}
 <div class="container-fluid">
-    <h2 class="mb-4">Meus Horários de Atendimento</h2>
-
-    <a href="{% url 'criar_horario' %}" class="btn btn-primary mb-3">
-        <i class="bi bi-plus-circle"></i> Novo Horário
-    </a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-calendar2-check text-primary"></i> Meus Horários de Atendimento
+        </h2>
+        <a href="{% url 'criar_horario' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Horário
+        </a>
+    </div>
 
     {% if horarios %}
-        <div class="row g-3">
+        <div class="row g-4">
             {% for horario in horarios %}
             <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ horario.data }} ({{ horario.hora_inicio }} às {{ horario.hora_fim }})</h5>
-                        <p>Status: 
+                <div class="card horario-card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white text-center rounded-top">
+                        <h5 class="mb-0">{{ horario.data|date:"d/m/Y" }}</h5>
+                        <small>{{ horario.hora_inicio|time:"H:i" }} - {{ horario.hora_fim|time:"H:i" }}</small>
+                    </div>
+
+                    <div class="card-body text-center bg-light">
+                        <p class="mb-3">
+                            <i class="bi bi-person-badge text-primary"></i>
+                            <strong>{{ horario.profissional.get_full_name }}</strong><br>
+                            {% if horario.profissional.especializacao %}
+                                <small class="text-muted">{{ horario.profissional.especializacao }}</small>
+                            {% else %}
+                                <small class="text-muted">Especialização não informada</small>
+                            {% endif %}
+                        </p>
+
+                        <p>
+                            <i class="bi bi-circle-fill {% if horario.ativo %}text-success{% else %}text-secondary{% endif %}"></i>
                             {% if horario.ativo %}
                                 <span class="badge bg-success">Ativo</span>
                             {% else %}
                                 <span class="badge bg-secondary">Inativo</span>
                             {% endif %}
                         </p>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'editar_horario' horario.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                            <a href="{% url 'deletar_horario' horario.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'editar_horario' horario.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'deletar_horario' horario.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> Excluir
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -34,7 +57,58 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-info">Nenhum horário cadastrado.</div>
+        <div class="alert alert-info text-center mt-4">
+            <i class="bi bi-info-circle" style="font-size: 1.5rem;"></i>
+            <p class="mt-2 mb-0">Nenhum horário cadastrado.</p>
+        </div>
     {% endif %}
 </div>
+
+{% block extra_css %}
+<style>
+    .horario-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .horario-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .horario-card .card-header {
+        padding: 15px;
+    }
+
+    .horario-card .card-body {
+        padding: 20px;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border: none;
+        font-weight: 500;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+    }
+
+    .btn-outline-primary:hover {
+        color: white;
+        background-color: #0d6efd;
+    }
+
+    .btn-outline-danger:hover {
+        color: white;
+        background-color: #dc3545;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
 {% endblock %}
