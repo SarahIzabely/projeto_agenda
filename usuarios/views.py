@@ -288,9 +288,8 @@ def cancelar_agendamento(request, pk):
     return redirect('horarios_agendados')
 
 
-# -------------------------------------
 # HORÁRIOS AGENDADOS (ambos os perfis)
-# -------------------------------------
+
 @login_required
 def horarios_agendados(request):
     """Lista todos os horários agendados pelo usuário logado (somente os não concluídos)."""
@@ -321,10 +320,8 @@ def horarios_agendados(request):
         }
     )
 
-
-# -------------------------------------
 # HORÁRIOS ARQUIVADOS (ambos os perfis)
-# -------------------------------------
+
 @login_required
 def horarios_arquivados(request):
     """Lista os agendamentos concluídos (arquivados) para o usuário logado."""
@@ -342,9 +339,8 @@ def horarios_arquivados(request):
     })
 
 
-# -------------------------------------
 # CONCLUIR CONSULTA (ambos podem)
-# -------------------------------------
+
 from django.db.models import Q
 
 @login_required
@@ -381,9 +377,8 @@ def desmarcar_conclusao(request, pk):
     return redirect('horarios_arquivados')
 
 
-# -------------------------------------
 # AVISOS DE CANCELAMENTO (paciente)
-# -------------------------------------
+
 @login_required
 def avisos_cancelamento(request):
     """Lista os avisos de cancelamento recebidos pelo paciente."""

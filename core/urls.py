@@ -19,10 +19,6 @@ urlpatterns = [
     path('confirmar_agendamento/<int:pk>/', usuarios_views.confirmar_agendamento, name='confirmar_agendamento'),
     path('horarios/agendados/', usuarios_views.horarios_agendados, name='horarios_agendados'),
 
-
-    # 🔍 Debug (ver todos os horários no banco)
-    path('debug/horarios/', agenda_views.ver_horarios_debug, name='ver_horarios_debug'),
-
     # Usuários
     path('usuarios/', include('usuarios.urls')),
 ]

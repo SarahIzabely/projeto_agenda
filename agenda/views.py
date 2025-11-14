@@ -5,19 +5,17 @@ from .forms import HorarioDisponivelForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
-
-# 🏠 Redireciona a home (/) para a listagem de horários
 def home(request):
     return redirect('listar_horarios')
 
 
-# 👥 Lista horários disponíveis (para pacientes)
+# Lista horários disponíveis (para pacientes)
 def listar_horarios(request):
     horarios = HorarioDisponivel.objects.filter(ativo=True).order_by('data', 'hora_inicio')
     return render(request, 'horarios_paciente/listar_horarios.html', {'horarios': horarios})
 
 
-# ➕ Profissional cria horário
+# Profissional cria horário
 @login_required
 def criar_horario(request):
     if request.method == 'POST':
@@ -35,7 +33,7 @@ def criar_horario(request):
     return render(request, 'horarios_profissional/form_horario.html', {'form': form, 'titulo': 'Criar Horário'})
 
 
-# ✏️ Profissional edita horário
+# Profissional edita horário
 @login_required
 def editar_horario(request, pk):
     horario = get_object_or_404(HorarioDisponivel, pk=pk)
@@ -54,7 +52,7 @@ def editar_horario(request, pk):
     return render(request, 'horarios_profissional/form_horario.html', {'form': form, 'titulo': 'Editar Horário'})
 
 
-# ❌ Profissional deleta horário
+#  Profissional deleta horário
 @login_required
 def deletar_horario(request, pk):
     horario = get_object_or_404(HorarioDisponivel, pk=pk)
@@ -69,21 +67,9 @@ def deletar_horario(request, pk):
     return render(request, 'horarios_profissional/confirmar_delete.html', {'horario': horario})
 
 
-# 📅 Detalhes da consulta (nova tela)
+# Detalhes da consulta (nova tela)
 @login_required
 def detalhes_consulta(request, pk):
     horario = get_object_or_404(HorarioDisponivel, pk=pk)
     return render(request, 'horarios_paciente/detalhes_consulta.html', {'horario': horario})
 
-
-# 🧠 View de depuração — mostra todos os horários do banco (para checar IDs)
-def ver_horarios_debug(request):
-    horarios = HorarioDisponivel.objects.all()
-    if not horarios.exists():
-        return HttpResponse("<h3>Nenhum horário cadastrado no banco.</h3>")
-    
-    html = "<h2>Horários Cadastrados</h2><ul>"
-    for h in horarios:
-        html += f"<li>ID: {h.id} | Profissional: {h.profissional.get_full_name()} | Data: {h.data} | Hora: {h.hora_inicio}</li>"
-    html += "</ul>"
-    return HttpResponse(html)
